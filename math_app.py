@@ -42,7 +42,7 @@ credentials = service_account.Credentials.from_service_account_info(
 client = storage.Client(credentials=credentials)    
 
 # Define the Vertex AI model and settings
-vertexai.init(project="poised-climate-423605-k7", location="us-central1")
+vertexai.init(project="poised-climate-423605-k7", location="us-central1",credentials=credentials)
 model = GenerativeModel("gemini-1.5-flash-preview-0514")
 generation_config = {
     "max_output_tokens": 8192,
