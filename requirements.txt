@@ -1,0 +1,8 @@
+streamlit
+vertexai
+google-cloud-storage
+google-auth
+google-auth-oauthlib
+httpx-oauth
+gcsfs
+st-files-connection
