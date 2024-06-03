@@ -117,7 +117,7 @@ if st.session_state.is_parsing:
     st.session_state.is_parsing = False
 
 # Show Parse Another Document button if the document was parsed
-if parse_another_button:
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.experimental_rerun()
+# if parse_another_button:
+#     for key in list(st.session_state.keys()):
+#         del st.session_state[key]
+#     st.experimental_rerun()
