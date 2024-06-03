@@ -7,10 +7,6 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from google.api_core.retry import Retry
 
-CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
-CLIENT_SECRET = st.secrets.gcs_connections.CLIENT_SECRET
-REDIRECT_URI = st.secrets.gcs_connections.REDIRECT_URI
-
 # Initialize the Streamlit app
 st.title("PDF Parser App")
 
@@ -20,9 +16,6 @@ if "is_parsing" not in st.session_state:
 
 if "parse_another" not in st.session_state:
     st.session_state.parse_another = False
-
-# Create a file uploader and disable it when parsing
-uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
 
 # Define the GCS bucket and credentials
 GCS_BUCKET_NAME = "myfirstbucketof"
@@ -74,6 +67,9 @@ def parse_pdf(uploaded_pdf):
 
     return parsed_text
 
+# Create a file uploader and disable it when parsing
+uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
+
 # UI layout for buttons
 col1, col2 = st.columns([1, 1])
 
@@ -115,6 +111,6 @@ if parse_button:
 
 # Show Parse Another Document button if the document was parsed
 if parse_another_button:
-    for key in st.session_state.keys():
+    for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.experimental_rerun()
