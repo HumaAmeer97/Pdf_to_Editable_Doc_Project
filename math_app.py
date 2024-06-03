@@ -74,7 +74,10 @@ uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.s
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
+    if not st.session_state.is_parsing:
+        parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
+    else:
+        parse_button = None
 
 with col2:
     if st.session_state.parse_another:
