@@ -79,11 +79,11 @@ with col1:
     else:
         parse_button = None
 
-with col2:
-    if st.session_state.parse_another:
-        parse_another_button = st.button("Parse Another Document")
-    else:
-        parse_another_button = None
+# with col2:
+#     if st.session_state.parse_another:
+#         parse_another_button = st.button("Parse Another Document")
+#     else:
+#         parse_another_button = None
 
 # Trigger the parsing function when the button is clicked
 if parse_button:
