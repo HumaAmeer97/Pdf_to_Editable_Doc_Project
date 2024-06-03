@@ -88,6 +88,10 @@ with col2:
 # Trigger the parsing function when the button is clicked
 if parse_button:
     st.session_state.is_parsing = True
+    st.experimental_rerun()
+
+# Perform the parsing if the state indicates parsing is active
+if st.session_state.is_parsing:
     with st.spinner('Parsing the document...'):
         parsed_text = parse_pdf(uploaded_pdf)
         
