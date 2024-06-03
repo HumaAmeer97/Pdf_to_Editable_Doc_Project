@@ -168,10 +168,10 @@ safety_settings = {
 
 # Function to split PDF into parts of up to 7MB
 def split_pdf(file, max_size_mb=7):
-    reader = PdfFileReader(file)
+    reader = PdfReader(file)
     num_pages = reader.numPages
     parts = []
-    current_writer = PdfFileWriter()
+    current_writer = PdfWriter()
     current_size = 0
     part_index = 0
 
@@ -184,7 +184,7 @@ def split_pdf(file, max_size_mb=7):
         current_size += current_buf.tell() / (1024 * 1024)
         if current_size >= max_size_mb or i == num_pages - 1:
             parts.append(current_buf)
-            current_writer = PdfFileWriter()
+            current_writer = PdfWriter()
             current_size = 0
             part_index += 1
 
