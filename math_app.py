@@ -126,12 +126,25 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from google.api_core.retry import Retry
 
+CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
+CLIENT_SECRET = st.secrets.gcs_connections.CLIENT_SECRET
+REDIRECT_URI = st.secrets.gcs_connections.REDIRECT_URI
+
 # Initialize the Streamlit app
 st.title("PDF Parser App")
 
 # Initialize session state
 if "is_parsing" not in st.session_state:
     st.session_state.is_parsing = False
+
+if "parsed_text" not in st.session_state:
+    st.session_state.parsed_text = None
+
+if "uploaded_pdf_name" not in st.session_state:
+    st.session_state.uploaded_pdf_name = None
+
+# Create a file uploader and disable it when parsing
+uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
 
 # Define the GCS bucket and credentials
 GCS_BUCKET_NAME = "myfirstbucketof"
@@ -183,40 +196,25 @@ def parse_pdf(uploaded_pdf):
 
     return parsed_text
 
-# Define the reset function
-def reset_app_state():
-    for key in list(st.session_state.keys()):
-        st.session_state[key] = False
-
-# Create a file uploader and reset the app state on file upload
-uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing, on_change=reset_app_state)
-
 # UI layout for buttons
-if uploaded_pdf:
-    col1, _ = st.columns([1, 1])
+parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
 
-    with col1:
-        if not st.session_state.is_parsing:
-            parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
-        else:
-            parse_button = None
-
-    # Trigger the parsing function when the button is clicked
-    if parse_button:
-        st.session_state.is_parsing = True
-        st.experimental_rerun()
-
-# Perform the parsing if the state indicates parsing is active
-if st.session_state.is_parsing:
+# Trigger the parsing function when the button is clicked
+if parse_button:
+    st.session_state.is_parsing = True
+    st.session_state.uploaded_pdf_name = uploaded_pdf.name
     with st.spinner('Parsing the document...'):
-        parsed_text = parse_pdf(uploaded_pdf)
-        
+        st.session_state.parsed_text = parse_pdf(uploaded_pdf)
+
+    st.session_state.is_parsing = False
+
+if st.session_state.parsed_text:
     # Save the parsed text to a .doc file
-    doc_file_name = uploaded_pdf.name.split(".pdf")[0] + "_parsed_text.doc"
+    doc_file_name = st.session_state.uploaded_pdf_name.split(".pdf")[0] + "_parsed_text.doc"
     doc_file_path = os.path.join("/tmp", doc_file_name)
     with open(doc_file_path, "w") as doc_file:
-        doc_file.write(parsed_text)
-    
+        doc_file.write(st.session_state.parsed_text)
+
     # Provide the download link
     with open(doc_file_path, "rb") as doc_file:
         st.download_button(
@@ -229,5 +227,8 @@ if st.session_state.is_parsing:
         )
 
     st.success("Parsing complete. You can download the parsed text.")
-    st.session_state.is_parsing = False
+
+    # Reset the state for new upload
+    st.session_state.parsed_text = None
+    st.session_state.uploaded_pdf_name = None
     st.experimental_rerun()
