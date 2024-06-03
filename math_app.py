@@ -129,7 +129,7 @@ import vertexai.preview.generative_models as generative_models
 from google.cloud import storage
 from google.oauth2 import service_account
 from google.api_core.retry import Retry
-from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfReader, PdfWriter
 import io
 
 # Initialize the Streamlit app
