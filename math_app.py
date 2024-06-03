@@ -14,13 +14,16 @@ REDIRECT_URI = st.secrets.gcs_connections.REDIRECT_URI
 # Initialize the Streamlit app
 st.title("PDF Parser App")
 
-# Create a file uploader
-uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"])
+# Create a file uploader and disable it when parsing
+if "is_parsing" not in st.session_state:
+    st.session_state.is_parsing = False
+
+uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
 
 # Define the GCS bucket and credentials
 GCS_BUCKET_NAME = "myfirstbucketof"
 
-# Create API client.
+# Create API client
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcs_connections"]
 )
@@ -67,34 +70,46 @@ def parse_pdf(uploaded_pdf):
 
     return parsed_text
 
-# Show Parse PDF button only if a file is uploaded
-if uploaded_pdf is not None:
-    parse_button_disabled = st.button("Parse PDF", disabled=False)
-    if parse_button_disabled:
-        st.session_state['parse_button_disabled'] = True
-        with st.spinner('Parsing the document...'):
-            parsed_text = parse_pdf(uploaded_pdf)
-            
-        # Save the parsed text to a .doc file
-        doc_file_name = uploaded_pdf.name.split(".pdf")[0] + "_parsed_text.doc"
-        doc_file_path = os.path.join("/tmp", doc_file_name)
-        with open(doc_file_path, "w") as doc_file:
-            doc_file.write(parsed_text)
-        
-        # Provide the download link
-        with open(doc_file_path, "rb") as doc_file:
-            st.download_button(
-                label="📄 Download Parsed Text",
-                data=doc_file,
-                file_name=doc_file_name,
-                mime="application/msword",
-                key="download-button",
-                help="Click to download the parsed document as a .doc file.",
-            )
+# UI layout for buttons
+col1, col2 = st.columns([1, 1])
 
-        st.success("Parsing complete. You can download the parsed text.")
-        if st.button("Parse Another Document"):
-            st.session_state['parse_button_disabled'] = False
-            st.experimental_rerun()
-else:
-    st.info("Please upload a PDF file to parse.")
+with col1:
+    parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
+
+with col2:
+    if "parse_another" in st.session_state and st.session_state.parse_another:
+        parse_another_button = st.button("Parse Another Document")
+    else:
+        parse_another_button = None
+
+# Trigger the parsing function when the button is clicked
+if parse_button:
+    st.session_state.is_parsing = True
+    with st.spinner('Parsing the document...'):
+        parsed_text = parse_pdf(uploaded_pdf)
+        
+    # Save the parsed text to a .doc file
+    doc_file_name = uploaded_pdf.name.split(".pdf")[0] + "_parsed_text.doc"
+    doc_file_path = os.path.join("/tmp", doc_file_name)
+    with open(doc_file_path, "w") as doc_file:
+        doc_file.write(parsed_text)
+    
+    # Provide the download link
+    with open(doc_file_path, "rb") as doc_file:
+        st.download_button(
+            label="📄 Download Parsed Text",
+            data=doc_file,
+            file_name=doc_file_name,
+            mime="application/msword",
+            key="download-button",
+            help="Click to download the parsed document as a .doc file.",
+        )
+
+    st.success("Parsing complete. You can download the parsed text.")
+    st.session_state.parse_another = True
+    st.session_state.is_parsing = False
+
+# Show Parse Another Document button if the document was parsed
+if parse_another_button:
+    st.session_state.parse_another = False
+    st.experimental_rerun()
