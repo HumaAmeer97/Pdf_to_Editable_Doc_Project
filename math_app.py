@@ -79,15 +79,19 @@ with col1:
     else:
         parse_button = None
 
-# with col2:
-#     if st.session_state.parse_another:
-#         parse_another_button = st.button("Parse Another Document")
-#     else:
-#         parse_another_button = None
+with col2:
+    if st.session_state.parse_another:
+        parse_another_button = st.button("Parse Another Document")
+    else:
+        parse_another_button = None
 
 # Trigger the parsing function when the button is clicked
 if parse_button:
     st.session_state.is_parsing = True
+    st.experimental_rerun()
+
+# Perform the parsing if the state indicates parsing is active
+if st.session_state.is_parsing:
     with st.spinner('Parsing the document...'):
         parsed_text = parse_pdf(uploaded_pdf)
         
@@ -112,9 +116,8 @@ if parse_button:
     st.session_state.parse_another = True
     st.session_state.is_parsing = False
 
-# # Show Parse Another Document button if the document was parsed
-# if parse_another_button:
-#     for key in list(st.session_state.keys()):
-#         del st.session_state[key]
-#     st.experimental_rerun()
-
+# Show Parse Another Document button if the document was parsed
+if parse_another_button:
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.experimental_rerun()
