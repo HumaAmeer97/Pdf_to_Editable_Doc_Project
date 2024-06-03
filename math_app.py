@@ -7,6 +7,10 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from google.api_core.retry import Retry
 
+CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
+CLIENT_SECRET = st.secrets.gcs_connections.CLIENT_SECRET
+REDIRECT_URI = st.secrets.gcs_connections.REDIRECT_URI
+
 # Initialize the Streamlit app
 st.title("PDF Parser App")
 
@@ -14,8 +18,8 @@ st.title("PDF Parser App")
 if "is_parsing" not in st.session_state:
     st.session_state.is_parsing = False
 
-if "parse_another" not in st.session_state:
-    st.session_state.parse_another = False
+# Create a file uploader and disable it when parsing
+uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
 
 # Define the GCS bucket and credentials
 GCS_BUCKET_NAME = "myfirstbucketof"
@@ -67,31 +71,12 @@ def parse_pdf(uploaded_pdf):
 
     return parsed_text
 
-# Create a file uploader and disable it when parsing
-uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
-
 # UI layout for buttons
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    if not st.session_state.is_parsing:
-        parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
-    else:
-        parse_button = None
-
-with col2:
-    if st.session_state.parse_another:
-        parse_another_button = st.button("Parse Another Document")
-    else:
-        parse_another_button = None
+parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
 
 # Trigger the parsing function when the button is clicked
 if parse_button:
     st.session_state.is_parsing = True
-    st.experimental_rerun()
-
-# Perform the parsing if the state indicates parsing is active
-if st.session_state.is_parsing:
     with st.spinner('Parsing the document...'):
         parsed_text = parse_pdf(uploaded_pdf)
         
@@ -113,11 +98,7 @@ if st.session_state.is_parsing:
         )
 
     st.success("Parsing complete. You can download the parsed text.")
-    st.session_state.parse_another = True
-    st.session_state.is_parsing = False
 
-# Show Parse Another Document button if the document was parsed
-if parse_another_button:
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
+    # Reset session state to allow for another document upload
+    st.session_state.is_parsing = False
     st.experimental_rerun()
