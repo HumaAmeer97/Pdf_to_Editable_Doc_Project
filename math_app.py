@@ -10,7 +10,7 @@ from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 from httpx_oauth.clients.google import GoogleOAuth2
 from google.api_core.retry import Retry
-from pydocx import Document
+from docx import Document
 
 
 CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
