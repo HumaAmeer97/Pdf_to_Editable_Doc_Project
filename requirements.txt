@@ -5,5 +5,5 @@ google-auth
 google-auth-oauthlib
 httpx-oauth
 gcsfs
-PyDocX
+docx
 st-files-connection
