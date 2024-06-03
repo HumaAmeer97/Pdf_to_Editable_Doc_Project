@@ -69,12 +69,15 @@ def parse_pdf(uploaded_pdf):
 
 # Show Parse PDF button only if a file is uploaded
 if uploaded_pdf is not None:
-    if st.button("Parse PDF"):
+    parse_button_disabled = st.button("Parse PDF", disabled=False)
+    if parse_button_disabled:
+        st.session_state['parse_button_disabled'] = True
         with st.spinner('Parsing the document...'):
             parsed_text = parse_pdf(uploaded_pdf)
             
         # Save the parsed text to a .doc file
-        doc_file_path = "/tmp/parsed_text.doc"
+        doc_file_name = uploaded_pdf.name.split(".pdf")[0] + "_parsed_text.doc"
+        doc_file_path = os.path.join("/tmp", doc_file_name)
         with open(doc_file_path, "w") as doc_file:
             doc_file.write(parsed_text)
         
@@ -83,12 +86,15 @@ if uploaded_pdf is not None:
             st.download_button(
                 label="📄 Download Parsed Text",
                 data=doc_file,
-                file_name="parsed_text.doc",
+                file_name=doc_file_name,
                 mime="application/msword",
                 key="download-button",
                 help="Click to download the parsed document as a .doc file.",
             )
 
         st.success("Parsing complete. You can download the parsed text.")
+        if st.button("Parse Another Document"):
+            st.session_state['parse_button_disabled'] = False
+            st.experimental_rerun()
 else:
     st.info("Please upload a PDF file to parse.")
