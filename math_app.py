@@ -4,11 +4,7 @@ import vertexai
 from vertexai.generative_models import GenerativeModel, Part, FinishReason
 import vertexai.preview.generative_models as generative_models
 from google.cloud import storage
-from google.oauth2 import id_token
-from google.auth.transport import requests
 from google.oauth2 import service_account
-from st_files_connection import FilesConnection
-from httpx_oauth.clients.google import GoogleOAuth2
 from google.api_core.retry import Retry
 
 CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
@@ -21,13 +17,8 @@ st.title("PDF Parser App")
 # Create a file uploader
 uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"])
 
-# Create a button to trigger the parsing
-parse_button = st.button("Parse PDF")
-
 # Define the GCS bucket and credentials
 GCS_BUCKET_NAME = "myfirstbucketof"
-# GCS_CREDENTIALS = st.secrets.g_credentials
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GCS_CREDENTIALS
 
 # Create API client.
 credentials = service_account.Credentials.from_service_account_info(
@@ -76,24 +67,28 @@ def parse_pdf(uploaded_pdf):
 
     return parsed_text
 
-# Trigger the parsing function when the button is clicked
-if parse_button and uploaded_pdf is not None:
-    parsed_text = parse_pdf(uploaded_pdf)
-    
-    # Save the parsed text to a .doc file
-    doc_file_path = "/tmp/parsed_text.doc"
-    with open(doc_file_path, "w") as doc_file:
-        doc_file.write(parsed_text)
-    
-    # Provide the download link
-    with open(doc_file_path, "rb") as doc_file:
-        st.download_button(
-            label="Download Parsed Text",
-            data=doc_file,
-            file_name="parsed_text.doc",
-            mime="application/msword"
-        )
+# Show Parse PDF button only if a file is uploaded
+if uploaded_pdf is not None:
+    if st.button("Parse PDF"):
+        with st.spinner('Parsing the document...'):
+            parsed_text = parse_pdf(uploaded_pdf)
+            
+        # Save the parsed text to a .doc file
+        doc_file_path = "/tmp/parsed_text.doc"
+        with open(doc_file_path, "w") as doc_file:
+            doc_file.write(parsed_text)
+        
+        # Provide the download link
+        with open(doc_file_path, "rb") as doc_file:
+            st.download_button(
+                label="📄 Download Parsed Text",
+                data=doc_file,
+                file_name="parsed_text.doc",
+                mime="application/msword",
+                key="download-button",
+                help="Click to download the parsed document as a .doc file.",
+            )
 
-    st.success("Parsing complete. You can download the parsed text.")
+        st.success("Parsing complete. You can download the parsed text.")
 else:
-    st.warning("Please upload a PDF file to parse.")
+    st.info("Please upload a PDF file to parse.")

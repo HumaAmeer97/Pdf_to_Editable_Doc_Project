@@ -5,5 +5,4 @@ google-auth
 google-auth-oauthlib
 httpx-oauth
 gcsfs
-docx
 st-files-connection
