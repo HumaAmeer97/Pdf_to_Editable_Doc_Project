@@ -14,10 +14,14 @@ REDIRECT_URI = st.secrets.gcs_connections.REDIRECT_URI
 # Initialize the Streamlit app
 st.title("PDF Parser App")
 
-# Create a file uploader and disable it when parsing
+# Initialize session state
 if "is_parsing" not in st.session_state:
     st.session_state.is_parsing = False
 
+if "parse_another" not in st.session_state:
+    st.session_state.parse_another = False
+
+# Create a file uploader and disable it when parsing
 uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"], disabled=st.session_state.is_parsing)
 
 # Define the GCS bucket and credentials
@@ -77,7 +81,7 @@ with col1:
     parse_button = st.button("Parse PDF", disabled=(uploaded_pdf is None or st.session_state.is_parsing))
 
 with col2:
-    if "parse_another" in st.session_state and st.session_state.parse_another:
+    if st.session_state.parse_another:
         parse_another_button = st.button("Parse Another Document")
     else:
         parse_another_button = None
@@ -111,5 +115,6 @@ if parse_button:
 
 # Show Parse Another Document button if the document was parsed
 if parse_another_button:
-    st.session_state.parse_another = False
+    for key in st.session_state.keys():
+        del st.session_state[key]
     st.experimental_rerun()
