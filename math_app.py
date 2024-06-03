@@ -10,6 +10,7 @@ from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 from httpx_oauth.clients.google import GoogleOAuth2
 from google.api_core.retry import Retry
+from pydocx import Document
 
 
 CLIENT_ID = st.secrets.gcs_connections.CLIENT_ID
@@ -79,8 +80,23 @@ def parse_pdf(uploaded_pdf):
     )
 
     # Print the parsed text
+    # for response in responses:
+    #     st.write(response.text)
+    doc = Document()
     for response in responses:
-        st.write(response.text)
+        doc.add_paragraph(response.text)
+    
+    # Save the doc file
+    doc.save("parsed_text.docx")
+    
+    # Generate a downloadable link
+    st.markdown(get_download_link("parsed_text.docx", "Download Parsed Text"), unsafe_allow_html=True)
+
+def get_download_link(bin_file, label):
+    bin_str = bin_file.getvalue().decode("utf-8")
+    bin_str = base64.b64encode(bin_str.encode("utf-8")).decode("utf-8")
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{label}">Click Here</a>'
+    return href
 
 # Trigger the parsing function when the button is clicked
 if parse_button:
